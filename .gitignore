@@ -1,0 +1,18 @@
+# VS Code
+.vscode/
+
+# Java
+*.class
+target/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Local application configuration containing secrets
+application-local.properties
+
+# OS files
+.DS_Store
+Thumbs.db
