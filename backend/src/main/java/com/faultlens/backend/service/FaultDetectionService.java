@@ -22,16 +22,19 @@ public class FaultDetectionService {
 
     private final LogRepository logRepository;
     private final MonitoredServiceRepository monitoredServiceRepository;
+    private final FaultEventService faultEventService;
 
     public FaultDetectionService(
             LogRepository logRepository,
-            MonitoredServiceRepository monitoredServiceRepository
+            MonitoredServiceRepository monitoredServiceRepository,
+            FaultEventService faultEventService
     ) {
         this.logRepository = logRepository;
         this.monitoredServiceRepository = monitoredServiceRepository;
+        this.faultEventService = faultEventService;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public FaultResponse detectFault(Long serviceId) {
 
         MonitoredService service = monitoredServiceRepository
@@ -42,7 +45,8 @@ public class FaultDetectionService {
                 ));
 
         LocalDateTime endTime = LocalDateTime.now();
-        LocalDateTime startTime = endTime.minusSeconds(WINDOW_SECONDS);
+        LocalDateTime startTime =
+                endTime.minusSeconds(WINDOW_SECONDS);
 
         List<com.faultlens.backend.entity.Log> errorLogs =
                 logRepository.findByService_IdAndLevelAndTimestampBetween(
@@ -59,6 +63,14 @@ public class FaultDetectionService {
         String message = faultDetected
                 ? "High error rate detected"
                 : "No fault detected";
+
+        if (faultDetected) {
+            faultEventService.recordDetection(
+                    serviceId,
+                    errorCount,
+                    WINDOW_SECONDS
+            );
+        }
 
         return new FaultResponse(
                 service.getId(),
