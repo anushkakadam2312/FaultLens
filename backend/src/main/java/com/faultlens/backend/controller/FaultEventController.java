@@ -52,4 +52,15 @@ public class FaultEventController {
                 faultEventService.resolveEvent(id)
         );
     }
+
+    
+@GetMapping("/status/{status}")
+public ResponseEntity<List<FaultEventResponse>> getEventsByStatus(
+        @PathVariable String status
+) {
+    return ResponseEntity.ok(
+            faultEventService.getEventsByStatus(status)
+    );
+}
+
 }

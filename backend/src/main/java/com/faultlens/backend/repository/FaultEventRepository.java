@@ -21,4 +21,8 @@ public interface FaultEventRepository
             Long serviceId,
             String status
     );
+
+    List<FaultEvent> findByStatusOrderByStartedAtDesc(
+            String status
+    );
 }

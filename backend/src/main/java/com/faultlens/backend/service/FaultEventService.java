@@ -109,15 +109,39 @@ public class FaultEventService {
                         "Fault event not found"
                 ));
 
-        if ("RESOLVED".equals(event.getStatus())) {
-            return toResponse(event);
-        }
+       if ("RESOLVED".equals(event.getStatus())) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Fault event is already resolved"
+                );
+                }
 
         event.setStatus("RESOLVED");
         event.setResolvedAt(LocalDateTime.now());
 
         return toResponse(faultEventRepository.save(event));
     }
+    
+@Transactional(readOnly = true)
+public List<FaultEventResponse> getEventsByStatus(String status) {
+
+    if (!status.equalsIgnoreCase("OPEN")
+            && !status.equalsIgnoreCase("RESOLVED")) {
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid status. Use OPEN or RESOLVED"
+        );
+    }
+
+    return faultEventRepository
+            .findByStatusOrderByStartedAtDesc(
+                    status.toUpperCase()
+            )
+            .stream()
+            .map(this::toResponse)
+            .toList();
+}
+
 
     private FaultEventResponse toResponse(FaultEvent event) {
         return new FaultEventResponse(
